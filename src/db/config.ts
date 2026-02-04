@@ -2,8 +2,8 @@ import { connect } from "mongoose";
 
 const mongoURI = process.env.MONGODB_URI!
 
-connect (mongoURI).then(() => {
+connect(mongoURI).then(() => {
     console.log("database terhubung")
 }).catch((err) => {
-    console.log(err)
+    console.error(err)
 })
