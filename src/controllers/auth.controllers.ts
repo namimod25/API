@@ -142,7 +142,7 @@ export const uploadAvatar: RequestHandler = async (req, res) => {
 
         res.status(201).json({
             message: "profile avatar berhasil diupload",
-            User: {
+            user: {
                 id: userDoc._id,
                 name: userDoc.name,
                 email: userDoc.email,
@@ -157,31 +157,58 @@ export const uploadAvatar: RequestHandler = async (req, res) => {
     }
 }
 
-export const editUserByToken:RequestHandler = async (req, res) =>{
+export const editUserByToken: RequestHandler = async (req, res) => {
     const userDoc = await User.findById(req.user.id);
 
-    if(!userDoc){
+    if (!userDoc) {
         res.status(404).json({
             message: "user tidak ada"
         })
         return
     }
 
-    const {name, bio} = req.body
-    userDoc.name = name
-    userDoc.bio = bio
+    const { name, bio } = req.body
+
+    if (req.file) {
+        if (userDoc.avatar && userDoc.avatar.id) {
+            try {
+                await cloudinary.uploader.destroy(userDoc.avatar.id)
+            } catch (err: any) {
+                console.log("gagal hapus avatar : ", err);
+            }
+        }
+
+        const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+        const result = await cloudinary.uploader.upload(fileStr, {
+            folder: 'profile',
+            transformation: [{
+                width: 600,
+                height: 600,
+                crop: 'thumb',
+                gravity: 'face'
+            }]
+        })
+
+        userDoc.avatar = {
+            url: result.secure_url,
+            id: result.public_id
+        }
+    }
+
+    userDoc.name = name || userDoc.name
+    userDoc.bio = bio || userDoc.bio
 
     await userDoc.save()
     res.status(201).json({
-        message: "Update succes",
-        data: {
+        message: "Update success",
+        user: {
             id: userDoc._id,
             name: userDoc.name,
             email: userDoc.email,
             bio: userDoc.bio,
             avatar: userDoc.avatar?.url
         }
-    })
+    });
 }
 
 export const editPasswordByToken:RequestHandler = async (req, res) => {
