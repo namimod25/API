@@ -1,4 +1,4 @@
-import User from '@/models/User';
+import User from '../models/User';
 import { RequestHandler } from 'express';
 import jwt, { TokenExpiredError, JsonWebTokenError} from 'jsonwebtoken';
 

@@ -1,6 +1,6 @@
-import { getOtherSocketId, io } from '@/libs/socket'
-import Message from '@/models/Message'
-import { RequestHandler } from 'express'
+import { getOtherSocketId, io } from '../libs/socket';
+import Message from '../models/Message';
+import { RequestHandler } from 'express';
 
 export const getMessage: RequestHandler = async (req, res) => {
     const { otherUserId } = req.params

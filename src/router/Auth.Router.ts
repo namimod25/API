@@ -1,7 +1,7 @@
 import express from "express";
 import { editPasswordByToken, editUserByToken, getProfile, getUsers, LoginUser, Logout, Register, uploadAvatar } from "../controllers/auth.controllers";
-import { isAuth } from "@/middleware/AuthMiddleware";
-import upload from "@/middleware/uploadMiddleware";
+import { isAuth } from "../middleware/AuthMiddleware";
+import upload from "../middleware/uploadMiddleware";
 
 const authRouter = express.Router()
 

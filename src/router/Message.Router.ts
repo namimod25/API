@@ -1,5 +1,5 @@
-import { getMessage, sendMessage } from "@/controllers/message.controller";
-import { isAuth } from "@/middleware/AuthMiddleware";
+import { getMessage, sendMessage } from "../controllers/message.controller";
+import { isAuth } from "../middleware/AuthMiddleware";
 import express  from "express";
 
 const MessageRouter = express.Router();
