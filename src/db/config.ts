@@ -1,9 +1,17 @@
-import { connect } from "mongoose";
+import {PrismaClient} from '../generated/client';
 
-const mongoURI = process.env.MONGODB_URI!
+const prismaClientSingleton = () => {
+  const prisma = new PrismaClient();
+};
 
-connect(mongoURI).then(() => {
-    console.log("database terhubung")
-}).catch((err) => {
-    console.error(err)
-})
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClientSingleton | undefined;
+};
+
+// Menggunakan instance yang sudah ada di globalThis jika tersedia
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+// Simpan ke globalThis jika bukan di production
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

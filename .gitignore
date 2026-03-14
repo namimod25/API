@@ -1,0 +1,8 @@
+node_modules
+
+
+.env*
+.vscode
+package-lock.json
+/src/generated/*
+/src/generated/prisma

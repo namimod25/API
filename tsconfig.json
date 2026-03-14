@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "rootDir": "./",            
+    "outDir": "./dist",
+    "types": ["node"],          
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions":true,
+    "emitDeclarationOnly": false,
+    "noEmit": false
+  },
+  "include": ["**/*"],          
+  "exclude": ["node_modules", "dist"]
+}

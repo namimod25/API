@@ -1,4 +1,6 @@
 import { RequestHandler } from "express";
+import {prisma} from "../db/config";
+import * as z from 'zod';
 import User from "../models/User";
 import jwt from 'jsonwebtoken';
 import cloudinary from "../utils/cloudinary";
@@ -7,15 +9,37 @@ const JWT_SECRET = process.env.JWT_SECRET!
 
 export const Register: RequestHandler = async (req, res) => {
 
-    const { name, email, password } = req.body
-    await User.create({
-        name,
-        email,
-        password
-    })
-    res.status(201).json({
-        message: "Register succes"
-    })
+    try {
+        const userSchena = z.object({
+            fullname: z.string().min(1, "fullname minimal 1 character"),
+            usernamme: z.string().min(2, "username minimal 2 character"),
+            email:z.email("email harus berformat jhondoe@mail.com"),
+            password: z.string().min(8, "password minimal 8 character"),
+        })
+
+        const validasi = userSchena.parse(req.body);
+        const exitingEmail =  await prisma.user.findUnique({
+            where: {
+                email: validasi.email
+            }
+        })
+        if(exitingEmail){
+            return res.status(400).json({message: "email sudah terdaftar"})
+        }
+
+        const usernameExiting =  await prisma.user.findUnique({
+            where: {
+                username: validasi.usernamme
+            }
+        })
+        if(usernameExiting){
+            return res.status(400).json({message: "username sudah terdaftar"})
+        }
+    } catch (err) {
+        if(err instanceof Error && 'issues' in err){
+            return res.status(400).json({ message: err})
+        }
+    }
 
 }
 
