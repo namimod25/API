@@ -3,10 +3,12 @@ import { prisma } from "../db/config.js";
 import * as z from 'zod';
 import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
+import Jwt from "jsonwebtoken";
+import { id } from "zod/locales";
 
 
 
-// const JWT_SECRET = process.env.JWT_SECRET!
+
 
 export const Register = async (req: Request, res: Response) => {
 
@@ -37,11 +39,11 @@ export const Register = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "username sudah terdaftar" })
         }
 
-        
+
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(validasi.password, salt);
 
-        
+
         const newUser = await prisma.user.create({
             data: {
                 fullname: validasi.fullname,
@@ -51,22 +53,29 @@ export const Register = async (req: Request, res: Response) => {
                 bio: ""
             }
         })
+        const jwtSecret = process.env.JWT_SECRET
+         if (!jwtSecret) {
+            return res.status(500).json({ message: "verifikasi token gagal" });
+        }
+        const token = Jwt.sign({ id: newUser.id }, jwtSecret, { expiresIn: '1d' });
 
         return res.status(201).json({
             message: "Registrasi berhasil",
             user: {
                 id: newUser.id,
                 username: newUser.username,
-                email: newUser.email
-            }
+                email: newUser.email,
+                bio: newUser.bio
+            },
+            token: token
         })
 
     } catch (err) {
         if (err instanceof z.ZodError) {
-           const errors = err.issues.map((i) => i.message)
-           return res.status(400).json({
-            message: errors
-           })
+            const errors = err.issues.map((i) => i.message)
+            return res.status(400).json({
+                message: errors
+            })
         }
         console.error(err);
         return res.status(500).json({ message: "Internal server error" })
@@ -74,10 +83,47 @@ export const Register = async (req: Request, res: Response) => {
 
 }
 
-export const LoginUser =  (req: Request, res: Response) => {
+export const LoginUser = async (req: Request, res: Response) => {
+    try {
+        const { email, password } = req.body
 
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email dan password harus di tulis" });
+        }
+        const exitingEmail = await prisma.user.findUnique({
+            where: {
+                email
+            }
+        })
+        if (!exitingEmail) {
+            return res.status(400).json({ message: "Email belum Terdaftar" });
+        }
+        const ComparePassword = bcrypt.compareSync(password, exitingEmail.password)
+
+        if (!ComparePassword) {
+            return res.status(400).json({ message: "invalid user" });
+        }
+
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            return res.status(500).json({ message: "JWT secret not configured" });
+        }
+
+        const token = Jwt.sign({ id: exitingEmail.id }, jwtSecret, { expiresIn: '1d' });
+
+        return res.status(200).json({ message: "Login berhasil", token, 
+            data: {
+                id: exitingEmail.id,
+                fullname: exitingEmail.fullname,
+                Image: exitingEmail.image,
+                bio: exitingEmail.bio
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "internal server" });
+    }
 }
 
-export const Logout =  (req: Request, res: Response) => {
+export const Logout = (req: Request, res: Response) => {
 
 }

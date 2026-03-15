@@ -7,7 +7,7 @@ import router from './router/Auth.Router.js';
 const app = express();
 const port = 5030
 
-//middleware
+
 app.use(cors())
 app.use(express.json());
 
