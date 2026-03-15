@@ -6,3 +6,8 @@ node_modules
 package-lock.json
 /src/generated/*
 /src/generated/prisma
+
+./dist
+
+migrations
+generated
