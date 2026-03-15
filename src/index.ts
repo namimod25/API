@@ -1,19 +1,27 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import '../src/db/config.js';
-import router from './router/Auth.Router.js';
+import userRouter from './router/user.route.js';
 
-const app = express();
-const port = 5030
+async function bootstrap() {
+  const express = (await import('express')).default;
+  const cors = (await import('cors')).default;
+  const { default: router } = await import('./router/Auth.route.js');
+  await import('./db/config.js');
 
+  const app = express();
+  const port = 5030;
 
-app.use(cors())
-app.use(express.json());
+  app.use(cors());
+  app.use(express.json());
 
+  app.use('/api/auth', router);
+  app.use('/api/user', userRouter);
 
-app.use('/api/auth', router);
+  app.listen(port, () => {
+    console.log(`API running at http://localhost:${port}`);
+  });
+}
 
-app.listen(port, () => {
-  console.log(`API running at ${port}`);
+bootstrap().catch((err) => {
+  console.error('BOOTSTRAP ERROR:', err);
+  process.exit(1);
 });

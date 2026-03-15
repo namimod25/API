@@ -4,19 +4,20 @@ import * as z from 'zod';
 import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 import Jwt from "jsonwebtoken";
-import { id } from "zod/locales";
 
 
 
 
 
 export const Register = async (req: Request, res: Response) => {
+    console.log("Register Body:", req.body);
+
 
     try {
         const userSchema = z.object({
             fullname: z.string().min(1, "fullname minimal 1 character"),
             username: z.string().min(2, "username minimal 2 character"),
-            email: z.email("email harus berformat jhondoe@mail.com"),
+            email: z.string().email("email harus berformat jhondoe@mail.com"),
             password: z.string().min(8, "password minimal 8 character"),
         })
 
@@ -54,7 +55,7 @@ export const Register = async (req: Request, res: Response) => {
             }
         })
         const jwtSecret = process.env.JWT_SECRET
-         if (!jwtSecret) {
+        if (!jwtSecret) {
             return res.status(500).json({ message: "verifikasi token gagal" });
         }
         const token = Jwt.sign({ id: newUser.id }, jwtSecret, { expiresIn: '1d' });
@@ -84,6 +85,7 @@ export const Register = async (req: Request, res: Response) => {
 }
 
 export const LoginUser = async (req: Request, res: Response) => {
+
     try {
         const { email, password } = req.body
 
@@ -111,7 +113,8 @@ export const LoginUser = async (req: Request, res: Response) => {
 
         const token = Jwt.sign({ id: exitingEmail.id }, jwtSecret, { expiresIn: '1d' });
 
-        return res.status(200).json({ message: "Login berhasil", token, 
+        return res.status(200).json({
+            message: "Login berhasil", token,
             data: {
                 id: exitingEmail.id,
                 fullname: exitingEmail.fullname,
@@ -122,6 +125,13 @@ export const LoginUser = async (req: Request, res: Response) => {
     } catch (error) {
         res.status(500).json({ message: "internal server" });
     }
+}
+
+export const GetUser = async (req: Request, res: Response) => {
+    res.status(200).json({
+        message: "Berhasil mendapatkan data",
+        data: (req as any).data
+    })
 }
 
 export const Logout = (req: Request, res: Response) => {
