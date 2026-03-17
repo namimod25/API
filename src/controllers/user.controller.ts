@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../db/config.js';
 import * as z from 'zod';
-
+import cloudinary from '../utils/cloudinary.js';
 
 
 
@@ -93,7 +93,7 @@ export const editUser = async (req: Request, res: Response) => {
         });
 
         return res.status(200).json({
-            message: "User berhasil diupdate",
+            message: "User telah berhasil memperbarui",
             data: updateUser
         });
 
@@ -106,5 +106,55 @@ export const editUser = async (req: Request, res: Response) => {
         }
         console.error(err);
         res.status(500).json({ message: "internal server" });
+    }
+}
+
+export const updateAvatar = async (req: Request, res: Response) => {
+    try {
+        if(!req.file){
+            return res.status(400).json({message: "belum ada gambar yang diupload"});
+        }
+
+        const userId = (req as any).data.id;
+
+        const currentUser = await prisma.user.findUnique({
+            where:{
+                id: userId
+            }
+        });
+        if(currentUser?.imageId){
+            await cloudinary.uploader.destroy(currentUser.imageId)
+        }
+        const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+
+        const result = await cloudinary.uploader.upload(fileStr, {
+            folder: 'avatar',
+            transformation: [{
+                width: 300,
+                height: 300
+            }]
+        })
+
+        const updateUser = await prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                image: result.secure_url,
+                imageId: result.public_id
+            },
+            omit:{
+                password: true
+            }
+        })
+        return res.status(201).json({message: "Update image profile berhasil",
+            data: updateUser
+        })
+    } catch (error) {
+        console.log(error);
+        
+        res.status(500).json({message: "internal server",
+            error
+        })
     }
 }

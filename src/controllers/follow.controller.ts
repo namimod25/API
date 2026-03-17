@@ -1,0 +1,74 @@
+import type {Response, Request} from 'express'
+import { prisma } from '../db/config.js';
+
+
+
+export const followUserAccount = async(req: Request, res: Response) => {
+
+    const currentUserId = (req as any).data.id
+    const {followUserId} = req.body
+
+    if (!followUserId) {
+        return res.status(400).json({ message: "followUserId wajib diisi" });
+    }
+
+    if(Number(currentUserId) === Number(followUserId)){
+        return res.status(400).json({message: "Tidak bisa follow akun sendiri"});
+    }
+
+    const otherUserId = await prisma.user.findUnique({
+        where: {
+            id: Number(followUserId)
+        }
+    });
+
+    if(!otherUserId){
+        return res.status(404).json({message: "user Id tidak ditemukan"});
+    }
+
+    const isFollowUser = await prisma.follow.findUnique({
+        where: {
+            followerId_followingId: {
+                followerId: Number(currentUserId),
+                followingId: Number(followUserId)
+            }
+        }
+    });
+
+    if(isFollowUser){
+        return res.status(400).json({
+            message: "User sudah pernah di follow"
+        })
+    }
+
+    try {
+        const follow = await prisma.follow.create({
+            data: {
+                followerId: Number(currentUserId),
+                followingId: Number(followUserId)
+            }
+        });
+        //update user count
+        await prisma.user.update({
+            where: {
+                id: currentUserId
+            },
+            data: {
+                followerCount: {
+                    increment: 1
+                }
+            }
+        });
+
+        res.status(201).json({
+            message: "Follow User Berhasil",
+            data: follow
+        })
+    } catch (error) {
+        console.log(error);
+        
+        res.status(500).json({
+            message: "internal server"
+        })
+    }
+}
