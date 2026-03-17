@@ -72,3 +72,53 @@ export const followUserAccount = async(req: Request, res: Response) => {
         })
     }
 }
+
+export const unfollowAccount = async (req: Request, res: Response) => {
+    const unfollowId = req.params.unfollow
+    const currentUserId = (req as any).data.id
+
+    const Userunfollow = await prisma.user.findUnique({
+        where:{
+            id: Number(unfollowId)
+        }
+    })
+
+    if(!Userunfollow){
+        return res.status(404).json({
+            message: "user tidak ditemukan"
+        })
+    }
+
+    try {
+       await prisma.follow.delete({
+        where: {
+            followerId_followingId: {
+                followerId: Number(currentUserId),
+                followingId: Number(unfollowId)
+            },
+        },
+    });
+
+    //count user following dan follower
+    await prisma.user.update({
+        where: {
+            id: Number(currentUserId)
+        },
+        data: {
+            followerCount: {
+                decrement: 1
+            },
+        },
+    });
+
+    res.status(200).json({message: "user berhasil di unfollow"});
+
+    } catch (error) {
+        console.log(error);
+        
+        res.status(500).json({
+            message: "internal server",
+            error
+        })
+    }
+}
