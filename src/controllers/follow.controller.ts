@@ -54,6 +54,16 @@ export const followUserAccount = async(req: Request, res: Response) => {
                 id: currentUserId
             },
             data: {
+                followingCount: {
+                    increment: 1
+                }
+            }
+        });
+        await prisma.user.update({
+            where: {
+                id: Number(followUserId)
+            },
+            data: {
                 followerCount: {
                     increment: 1
                 }
@@ -105,6 +115,17 @@ export const unfollowAccount = async (req: Request, res: Response) => {
             id: Number(currentUserId)
         },
         data: {
+            followingCount: {
+                decrement: 1
+            },
+        },
+    });
+
+    await prisma.user.update({
+        where: {
+            id: Number(unfollowId)
+        },
+        data: {
             followerCount: {
                 decrement: 1
             },
@@ -118,6 +139,44 @@ export const unfollowAccount = async (req: Request, res: Response) => {
         
         res.status(500).json({
             message: "internal server",
+            error
+        })
+    }
+}
+
+export const getLimitUser = async(req: Request, res: Response ) => {
+    try {
+        const currentUserId = (req as any).data.id
+        const followedtUser = await prisma.follow.findMany({
+            where:{followerId: currentUserId},
+            select: {followingId: true}
+        })
+        const followedIds = followedtUser.map(f => f.followingId)
+
+        const users = await prisma.user.findMany({
+            where: {
+                id: {
+                    notIn: [...followedIds, currentUserId]
+                }
+            },
+            select: {
+                id: true,
+                image: true,
+                fullname: true,
+                username: true
+            },
+            take: 5,
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        res.status(200).json({message: "5 user belem di follow", data: users});
+
+    } catch (error) {
+        console.log(error);
+        
+        res.status(500).json({message: "internal server",
             error
         })
     }
