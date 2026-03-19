@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import userRouter from './router/user.route.js';
 import followRouter from './router/follow.route.js';
+import FeedRouter from './router/feed.route.js';
 
 async function bootstrap() {
   const express = (await import('express')).default;
@@ -17,6 +18,7 @@ async function bootstrap() {
   app.use('/api/auth', router);
   app.use('/api/user', userRouter);
   app.use('/api/follow', followRouter);
+  app.use('/api/feed', FeedRouter);
 
   app.listen(port, () => {
     console.log(`API running at http://localhost:${port}`);
