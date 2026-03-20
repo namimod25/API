@@ -1,6 +1,9 @@
 import type {Response, Request} from 'express';
 import cloudinary from '../utils/cloudinary.js';
 import { prisma } from '../db/config.js';
+import { includes } from 'zod';
+import { id } from 'zod/locales';
+import { create } from 'domain';
 
 
 export const CreateFeed = async (req: Request, res: Response) => {
@@ -19,16 +22,10 @@ export const CreateFeed = async (req: Request, res: Response) => {
         
                 const result = await cloudinary.uploader.upload(fileStr, {
                     folder: 'feeds',
-                    transformation: [{
-                        width: 1080,
-                        height: 1080,
-                        crop: 'fill',
-                        gravity: 'auto'
-                    },
-                    {
-                        quality: 'auto',
-                        fetch_format: 'auto'
-                    }],
+                    transformation: [
+                        {aspecy_ratio: '4:5', crop: 'fill', gravity: "auto",},
+                        {quality: "auto", fetch_format: "auto"}
+                    ],
                 })
 
                 const newFeed = await prisma.post.create({
@@ -54,5 +51,59 @@ export const CreateFeed = async (req: Request, res: Response) => {
         
         res.status(500).json({message: "Internal server",
             error});
+    }
+}
+
+export const ReadAllFeeds = async(req: Request, res: Response) => {
+    try {
+        const posts = await prisma.post.findMany({
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    fullname: true,
+                    username: true,
+                    image: true,
+                },
+            },
+        },
+            orderBy: { createdAt: 'desc',},
+    });
+
+    res.status(200).json({message: 'get all feeds', data: posts});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "internal serber", error});
+    }
+}
+
+export const detailFeed = async (req: Request, res: Response) => {
+    const {id} = req.params
+    try {
+        const post = await prisma.post.findUnique({
+            where: {
+            id: Number(id)
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    fullname: true,
+                    username: true,
+                    image: true
+                }
+            }
+        }
+    });
+
+    if(!post){
+        return res.status(404).json({
+            message: "Post tidak di temukan"
+        })
+    }
+    res.status(200).json({message: "Get detail Feed", data: post});
+
+    } catch (error) {
+        res.status(500).json({message: "internal server", error});
     }
 }
