@@ -53,7 +53,33 @@ export const CreateFeed = async (req: Request, res: Response) => {
 
 export const ReadAllFeeds = async(req: Request, res: Response) => {
     try {
-        const posts = await prisma.post.findMany({
+        const currentUserId = req.data.id
+
+        const followings = await prisma.follow.findMany({
+            where:{ followingId: currentUserId },
+            select:{
+                followerId: true
+            }
+        });
+         const followingIds = followings.map(f => f.followerId)
+        
+         //reques query
+        const page = Number(req.query.page) || 1
+        const limit = Number(req.query.page) || 10
+        const skip = (page - 1) * limit
+
+        const totalFeed = await prisma.post.count({
+            where:{
+                userId: {in: [...followingIds, currentUserId]}
+            }
+        })
+
+        const posts = await prisma.post.findMany(
+            {
+                where:{
+                    userId: {in: [...followingIds, currentUserId]}
+                },
+
         include: {
             user: {
                 select: {
@@ -64,10 +90,17 @@ export const ReadAllFeeds = async(req: Request, res: Response) => {
                 },
             },
         },
-            orderBy: { createdAt: 'desc',},
+            orderBy: { 
+                createdAt: 'desc'
+            },
+            skip: skip,
+            take: limit
     });
 
-    res.status(200).json({message: 'get all feeds', data: posts});
+    const totalPages = Math.ceil(totalFeed/limit)
+
+    res.status(200).json({page, limit, totalPages, totalFeed, data: posts});
+
     } catch (error) {
         console.log(error);
         res.status(500).json({message: "internal serber", error});
@@ -89,6 +122,16 @@ export const detailFeed = async (req: Request, res: Response) => {
                     username: true,
                     image: true
                 }
+            },
+            comments: {
+                select: {
+                    content: true,
+                    createdAt: true,
+                    user: {
+                        select:{id: true, username: true, image: true}
+                    }
+                },
+                orderBy: {createdAt: 'desc'}
             }
         }
     });
