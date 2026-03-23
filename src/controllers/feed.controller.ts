@@ -1,15 +1,12 @@
 import type {Response, Request} from 'express';
 import cloudinary from '../utils/cloudinary.js';
 import { prisma } from '../db/config.js';
-import { includes } from 'zod';
-import { id } from 'zod/locales';
-import { create } from 'domain';
 
 
 export const CreateFeed = async (req: Request, res: Response) => {
     try {
         const {caption} = req.body
-        const currentUserId = (req as any).data.id
+        const currentUserId = req.data.id
         if(!caption){
             return res.status(400).json({message: "caption wajib di isi"});
         }
@@ -106,4 +103,30 @@ export const detailFeed = async (req: Request, res: Response) => {
     } catch (error) {
         res.status(500).json({message: "internal server", error});
     }
+}
+
+export const deleteFeed = async (req: Request, res: Response) => {
+
+    const {id} = req.params
+    const postData = await prisma.post.findUnique({
+        where: {
+            id: Number(id)
+        }
+    })
+    if(!postData){
+        return res.status(404).json({message: "Feed tidak di temukan"});
+    }
+    if (postData.userId != (req.data.id)) {
+        res.status(400).json({message: "anda tidak bisa menghapus feed user lain"});
+    }
+
+    if(postData.imageId){
+        await cloudinary.uploader.destroy(postData.imageId)
+    }
+    await prisma.post.delete({
+        where: {
+            id: Number(id)
+        }
+    });
+    return res.status(200).json({message: "data feed berhasil di hapus"});
 }

@@ -4,12 +4,13 @@ import type { Request, Response, NextFunction } from "express";
 
 
 
-interface Token {
+interface UserData {
     id: number,
     fullname: string,
     username: string
     email: string,
-    image: string
+    image: string,
+    bio: string
 }
 
 export const AuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
@@ -25,7 +26,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
         }
 
         const token = headers.split(' ')[1] || "";
-        const decoded = Jwt.verify(token, JWT_SECRET) as Token;
+        const decoded = Jwt.verify(token, JWT_SECRET) as UserData;
 
         const currentUser = await prisma.user.findUnique({
             where: {
@@ -37,14 +38,14 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
             return res.status(401).json({ message: "User tidak ditemukan" });
         }
 
-        (req as any).data = {
-            id: currentUser.id,
-            fullname: currentUser.fullname,
-            username: currentUser.username,
-            email: currentUser.email,
-            Image: currentUser.image,
-            bio: currentUser.bio
-        }
+       req.data = {
+        id: currentUser.id,
+        fullname: currentUser.fullname,
+        username: currentUser.username,
+        email: currentUser.email,
+        Image: currentUser.image,
+        bio: currentUser.bio
+       };
 
         next();
 

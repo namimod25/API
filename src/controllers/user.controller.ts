@@ -75,7 +75,7 @@ export const editUser = async (req: Request, res: Response) => {
         })
         const validasi = userSchema.parse(req.body);
 
-        const userId = (req as any).data.id;
+        const userId = req.data.id
 
         const updateUser = await prisma.user.update({
             where: {
@@ -115,7 +115,7 @@ export const updateAvatar = async (req: Request, res: Response) => {
             return res.status(400).json({message: "belum ada gambar yang diupload"});
         }
 
-        const userId = (req as any).data.id;
+        const userId = req.data.id
 
         const currentUser = await prisma.user.findUnique({
             where:{

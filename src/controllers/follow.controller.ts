@@ -5,7 +5,7 @@ import { prisma } from '../db/config.js';
 
 export const followUserAccount = async(req: Request, res: Response) => {
 
-    const currentUserId = (req as any).data.id
+    const currentUserId = req.data.id
     const {followUserId} = req.body
 
     if (!followUserId) {
@@ -85,7 +85,7 @@ export const followUserAccount = async(req: Request, res: Response) => {
 
 export const unfollowAccount = async (req: Request, res: Response) => {
     const unfollowId = req.params.unfollow
-    const currentUserId = (req as any).data.id
+    const currentUserId = req.data.id
 
     const Userunfollow = await prisma.user.findUnique({
         where:{
@@ -146,7 +146,7 @@ export const unfollowAccount = async (req: Request, res: Response) => {
 
 export const getLimitUser = async(req: Request, res: Response ) => {
     try {
-        const currentUserId = (req as any).data.id
+        const currentUserId = req.data.id
         const followedtUser = await prisma.follow.findMany({
             where:{followerId: currentUserId},
             select: {followingId: true}
