@@ -3,6 +3,7 @@ import userRouter from './router/user.route.js';
 import followRouter from './router/follow.route.js';
 import FeedRouter from './router/feed.route.js';
 import routeComment from './router/comment.route.js';
+import LikeRouter from './router/like.route.js';
 
 async function bootstrap() {
   const express = (await import('express')).default;
@@ -21,6 +22,7 @@ async function bootstrap() {
   app.use('/api/follow', followRouter);
   app.use('/api/feed', FeedRouter);
   app.use('/api/comment', routeComment);
+  app.use('/api/like', LikeRouter);
 
   app.listen(port, () => {
     console.log(`API running at http://localhost:${port}`);
