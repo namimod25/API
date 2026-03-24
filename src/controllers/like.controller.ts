@@ -1,6 +1,5 @@
 import type {Response, Request} from 'express'
 import { prisma } from '../db/config.js'
-import { userInfo } from 'os'
 
 
 
