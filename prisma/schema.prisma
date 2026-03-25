@@ -75,7 +75,7 @@ model Bookmark{
   postId Int
   post Post @relation(fields: [postId], references: [id])
   createdAt DateTime @default(now())
-  @@id([userId, postId])
+  @@unique([userId, postId])
 }
  
 
