@@ -181,3 +181,43 @@ export const getLimitUser = async(req: Request, res: Response ) => {
         })
     }
 }
+
+export const followUser = async(req: Request, res: Response) => {
+    try {
+        const currentUserId = req.data.id
+        const {followId} = req.params
+
+        const checkFollowUserId = await prisma.user.findUnique({
+            where: {
+                id: Number(followId)
+            }
+        });
+
+        if(!checkFollowUserId){
+            return res.status(404).json({
+                message: "user tidak di temukan"
+            })
+        }
+
+        const followUserData = await prisma.follow.findUnique({
+            where: {
+                followerId_followingId: {
+                    followerId: Number(followId),
+                    followingId: currentUserId
+                }
+            }
+        })
+
+        if(followUserData){
+            return res.status(200).json({data: true})
+        }
+        return res.status(200).json({data: false})
+
+    } catch (error) {
+        console.log(error);
+        
+        res.status(500).json({
+            message: "internal server", error
+        })
+    }
+}

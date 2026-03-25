@@ -16,6 +16,24 @@ export const getUsername = async (req: Request, res: Response) => {
             omit: {
                 password: true,
                 imageId: true
+            },
+            include:{
+                posts: {
+                    omit: {
+                        userId: true,
+                        imageId: true
+                    }
+                },
+                bookmark: {
+                    include:{
+                        post:{
+                            omit:{
+                                userId: true,
+                                imageId: true
+                            }
+                        }
+                    }
+                }
             }
         })
 
