@@ -5,10 +5,10 @@ import FeedRouter from './router/feed.route.js';
 import routeComment from './router/comment.route.js';
 import LikeRouter from './router/like.route.js';
 import BookmarkRouter from './router/bookmark.route.js';
+import cors from 'cors';
 
 async function bootstrap() {
   const express = (await import('express')).default;
-  const cors = (await import('cors')).default;
   const { default: router } = await import('./router/Auth.route.js');
   await import('./db/config.js');
 
