@@ -10,8 +10,6 @@ import Jwt from "jsonwebtoken";
 
 
 export const Register = async (req: Request, res: Response) => {
-    console.log("Register Body:", req.body);
-
 
     try {
         const userSchema = z.object({
