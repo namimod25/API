@@ -34,7 +34,7 @@ const Post = ({ item }: { item: PostData }) => {
       <Image source={{ uri: item.image }}
         className='w-full h-96' resizeMode='cover'
       />
-      {/* actions */}
+      {/* likes */}
       <View className='flex-row justify-between px-4 py-3'>
         <View className='flex-row gap-2 items-center'>
           <TouchableOpacity onPress={handleLike} activeOpacity={0.7}>
