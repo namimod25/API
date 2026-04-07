@@ -19,7 +19,10 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution":"nodenext"
+    "moduleResolution":"nodenext",
+    "paths": {
+      "@prisma/client": ["../generated/prisma"]
+    }
   },
   "include": [
     "src/**/*"
