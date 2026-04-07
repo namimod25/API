@@ -4,7 +4,7 @@ import { prisma } from '../db/config.js';
 
 export const createComment = async (req: Request, res: Response) => {
     try {
-        const currentUser = req.data.id
+        const currentUser = req.body.id
         const {postId, content}  = req.body
 
         if(!postId || !content){
@@ -50,7 +50,7 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const commentDeleteId = async (req: Request, res: Response) => {
     const {id} = req.params
-    const currentUser = req.data.id
+    const currentUser = req.body.id
 
     const comment = await prisma.comment.findUnique({
         where:{
