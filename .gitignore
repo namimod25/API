@@ -12,3 +12,5 @@ package-lock.json
 migrations
 generated
 
+
+/src/generated/prisma
