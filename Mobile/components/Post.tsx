@@ -1,37 +1,36 @@
 import { View, Image, Text, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { colors } from '@/utils/color';
+import { item } from '@/types/Feed';
 
-interface PostData {
-  id: number;
-  username: string;
-  avatar: string;
-  image: string;
-  caption: string;
-  likes?: number;
-}
 
-const Post = ({ item }: { item: PostData }) => {
+
+const Post = ({item }: { item: item }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(item.likes ?? 0);
 
   const handleLike = () => {
     setLiked(prev => !prev);
-    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+    setLikeCount((prev: number) => liked ? prev - 1 : prev + 1);
   };
 
   return (
     <View className='mb-4'>
       {/* post header */}
       <View className='flex-row items-center px-4 mb-2'>
-        <Image source={{ uri: item.avatar }}
+        {item.user.image  ? (
+
+        <Image source={{ uri: item.user.image }}
           className='w-10 h-10 rounded-full'
         />
-        <Text className='ml-3 font-semibold'>{item.username}</Text>
+        ):(
+          <FontAwesome name='user-circle' size={26}/>
+        )}
+        <Text className='ml-3 font-semibold'>{item.user.username}</Text>
       </View>
       {/* post image */}
-      <Image source={{ uri: item.image }}
+      <Image source={{ uri: item.user.image }}
         className='w-full h-96' resizeMode='cover'
       />
       {/* likes */}
@@ -51,7 +50,7 @@ const Post = ({ item }: { item: PostData }) => {
       </View>
       {/* post caption */}
       <View className='px-4 mt-2'>
-        <Text className='text-sm'><Text className='font-bold'>{item.username}</Text> {item.caption}</Text>
+        <Text className='text-sm'><Text className='font-semibold'>{item.user.fullname}</Text> {item.user.caption}</Text>
       </View>
     </View>
   )

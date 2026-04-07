@@ -1,8 +1,22 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+
 import  {FlatList} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Post from '../../components/Post'
+import Header from '@/components/Header';
+import { useAuthStore } from '@/store/authStore';
+import { useEffect, useState } from 'react';
+import API from '@/config/koneksi';
+import { item } from '@/types/Feed';
 
 const index = () => {
+  const {token, user} = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [postData, setPostData] = useState<item[]>([])
+  const [page, setPage] = useState(1)
+  const [refreshing, setRefreshing] = useState(false)
+  const [totalPage, setTotalPage] = useState()
+
 
   const posts = [
     {
@@ -55,9 +69,35 @@ const index = () => {
     caption: "Step by step, progress tetap jalan 😊",
   }
   ];
+
+  
+  const Feed = async() => {
+    if(loading) return;
+    if(totalPage !== undefined && page > totalPage) return;
+    setLoading(true);
+    try {
+      const {data} = await API.get(`/feed?page=1&limit=5`);
+      setPostData((prev)=>[...prev, ...data.data]);
+      setTotalPage(data.totalPage);
+      setPage((prev) => prev+1);
+      console.log(data);
+      
+    } catch (error) {
+      console.log(error);
+      
+    }finally{
+      setLoading(false)
+    }
+  };
+
+  useEffect(()=>{
+    Feed()
+  }, [])
+
   return (
-    <SafeAreaView>
-      <FlatList data={posts} keyExtractor={(item)=>item.id.toString()} showsVerticalScrollIndicator={false} renderItem={({item}) => <Post item={item}/>}/>
+    <SafeAreaView className='flex-1 bg-bacground'>
+      <Header/>
+      <FlatList data={postData} keyExtractor={(item)=>item.id.toString()} showsVerticalScrollIndicator={false} renderItem={({ item }) => <Post item={item} />} />
     </SafeAreaView>
   )
 }
