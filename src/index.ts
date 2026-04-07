@@ -11,11 +11,12 @@ async function bootstrap() {
   const express = (await import('express')).default;
   const { default: router } = await import('./router/Auth.route.js');
   await import('./db/config.js');
-
+ 
   const app = express();
+  const port = 5030
 
   app.use(cors({
-    origin: ' https://medsos-kohl.vercel.app/',
+    origin: true,
     credentials: true
   }));
   
@@ -30,8 +31,9 @@ async function bootstrap() {
   app.use('/api/like', LikeRouter);
   app.use('/api/bookmark', BookmarkRouter);
 
-  app.listen( 'https://medsos-kohl.vercel.app/', () => {
-    console.log(`API running at https://medsos-kohl.vercel.app/`);
+  
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`API running at http://0.0.0.0/${port}`);
   });
 }
 
