@@ -6,13 +6,17 @@ import { prisma } from '../db/config.js';
 export const CreateFeed = async (req: Request, res: Response) => {
     try {
         const {caption} = req.body
-        const currentUserId = req.data.id
+        const currentUserId = req.data?.id
         if(!caption){
-            return res.status(400).json({message: "caption wajib di isi"});
+            return res.status(400).json({message: "caption wajib diisi"});
         }
 
         if(!req.file){
-            return res.status(400).json({message: "file gambar belum di input"})
+            return res.status(400).json({message: "file gambar belum diinput"})
+        }
+
+        if (!currentUserId) {
+            return res.status(401).json({message: "User tidak terautentikasi"});
         }
 
         const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
@@ -20,7 +24,7 @@ export const CreateFeed = async (req: Request, res: Response) => {
                 const result = await cloudinary.uploader.upload(fileStr, {
                     folder: 'feeds',
                     transformation: [
-                        {aspecy_ratio: '4:5', crop: 'fill', gravity: "auto",},
+                        {aspect_ratio: '4:5', crop: 'fill', gravity: "auto",},
                         {quality: "auto", fetch_format: "auto"}
                     ],
                 })
@@ -42,7 +46,7 @@ export const CreateFeed = async (req: Request, res: Response) => {
                         postCount: {increment: 1}
                     }
                 })
-                res.status(201).json({message: "Feed berhasil di buat", data: newFeed});
+                res.status(201).json({message: "Feed berhasil dibuat", data: newFeed});
     } catch (error) {
         console.log(error);
         
@@ -53,7 +57,11 @@ export const CreateFeed = async (req: Request, res: Response) => {
 
 export const ReadAllFeeds = async(req: Request, res: Response) => {
     try {
-        const currentUserId = req.data.id
+        const currentUserId = req.data?.id
+
+        if (!currentUserId) {
+            return res.status(401).json({message: "User tidak terautentikasi"});
+        }
 
         const followings = await prisma.follow.findMany({
             where:{ followingId: currentUserId },
@@ -63,9 +71,9 @@ export const ReadAllFeeds = async(req: Request, res: Response) => {
         });
          const followingIds = followings.map(f => f.followerId)
         
-         //reques query
+         //request query
         const page = Number(req.query.page) || 1
-        const limit = Number(req.query.page) || 10
+        const limit = Number(req.query.limit) || 10
         const skip = (page - 1) * limit
 
         const totalFeed = await prisma.post.count({
@@ -95,15 +103,22 @@ export const ReadAllFeeds = async(req: Request, res: Response) => {
             },
             skip: skip,
             take: limit
-    });
+        })
 
-    const totalPages = Math.ceil(totalFeed/limit)
-
-    res.status(200).json({page, limit, totalPages, totalFeed, data: posts});
-
+        res.status(200).json({
+            message: "Feeds berhasil diambil",
+            data: posts,
+            pagination: {
+                page,
+                limit,
+                total: totalFeed,
+                totalPages: Math.ceil(totalFeed / limit)
+            }
+        });
     } catch (error) {
         console.log(error);
-        res.status(500).json({message: "internal serber", error});
+        
+        res.status(500).json({message: "Internal server error", error});
     }
 }
 
@@ -159,7 +174,7 @@ export const deleteFeed = async (req: Request, res: Response) => {
     if(!postData){
         return res.status(404).json({message: "Feed tidak di temukan"});
     }
-    if (postData.userId != (req.data.id)) {
+    if (postData.userId != (req.data?.id)) {
         res.status(400).json({message: "anda tidak bisa menghapus feed user lain"});
     }
 

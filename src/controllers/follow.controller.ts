@@ -5,7 +5,7 @@ import { prisma } from '../db/config.js';
 
 export const followUserAccount = async(req: Request, res: Response) => {
 
-    const currentUserId = req.data.id
+    const currentUserId = req.data?.id
     const {followUserId} = req.body
 
     if (!followUserId) {
@@ -85,7 +85,7 @@ export const followUserAccount = async(req: Request, res: Response) => {
 
 export const unfollowAccount = async (req: Request, res: Response) => {
     const unfollowId = req.params.unfollow
-    const currentUserId = req.data.id
+    const currentUserId = req.data?.id
 
     const Userunfollow = await prisma.user.findUnique({
         where:{
@@ -144,14 +144,20 @@ export const unfollowAccount = async (req: Request, res: Response) => {
     }
 }
 
+
 export const getLimitUser = async(req: Request, res: Response ) => {
     try {
-        const currentUserId = req.data.id
-        const followedtUser = await prisma.follow.findMany({
+        const currentUserId = req.data?.id
+
+        if (!currentUserId) {
+            return res.status(401).json({message: "User tidak terautentikasi"});
+        }
+
+        const followedUser = await prisma.follow.findMany({
             where:{followerId: currentUserId},
             select: {followingId: true}
         })
-        const followedIds = followedtUser.map(f => f.followingId)
+        const followedIds = followedUser.map(f => f.followingId)
 
         const users = await prisma.user.findMany({
             where: {
@@ -171,7 +177,7 @@ export const getLimitUser = async(req: Request, res: Response ) => {
             }
         });
 
-        res.status(200).json({message: "5 user belem di follow", data: users});
+        res.status(200).json({message: "5 user belum di follow", data: users});
 
     } catch (error) {
         console.log(error);
@@ -184,8 +190,12 @@ export const getLimitUser = async(req: Request, res: Response ) => {
 
 export const followUser = async(req: Request, res: Response) => {
     try {
-        const currentUserId = req.data.id
+        const currentUserId = req.data?.id
         const {followId} = req.params
+
+        if (!currentUserId) {
+            return res.status(401).json({message: "User tidak terautentikasi"});
+        }
 
         const checkFollowUserId = await prisma.user.findUnique({
             where: {
@@ -195,15 +205,15 @@ export const followUser = async(req: Request, res: Response) => {
 
         if(!checkFollowUserId){
             return res.status(404).json({
-                message: "user tidak di temukan"
+                message: "user tidak ditemukan"
             })
         }
 
         const followUserData = await prisma.follow.findUnique({
             where: {
                 followerId_followingId: {
-                    followerId: Number(followId),
-                    followingId: currentUserId
+                    followerId: currentUserId,
+                    followingId: Number(followId)
                 }
             }
         })
@@ -212,12 +222,11 @@ export const followUser = async(req: Request, res: Response) => {
             return res.status(200).json({data: true})
         }
         return res.status(200).json({data: false})
-
     } catch (error) {
         console.log(error);
         
-        res.status(500).json({
-            message: "internal server", error
+        res.status(500).json({message: "internal server error",
+            error
         })
     }
 }

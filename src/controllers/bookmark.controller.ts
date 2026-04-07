@@ -4,7 +4,11 @@ import { prisma } from '../db/config.js';
 
 export const BookmarkFeed = async (req: Request, res: Response) => {
     const {postId} = req.params
-    const currenUserId = req.data.id
+    const currenUserId = req.data?.id
+
+    if (!currenUserId) {
+        return res.status(401).json({message: "Unauthorized"});
+    }
 
     try {
         const postData = await prisma.post.findUnique({
@@ -22,7 +26,7 @@ export const BookmarkFeed = async (req: Request, res: Response) => {
         const checkUserBookmark = await prisma.bookmark.findUnique({
             where: {
                 userId_postId: {
-                    userId: req.data.id,
+                    userId: currenUserId,
                     postId: Number(postId)
                 }
             }
@@ -32,7 +36,7 @@ export const BookmarkFeed = async (req: Request, res: Response) => {
             await prisma.bookmark.delete({
                 where: {
                     userId_postId: {
-                        userId: req.data.id,
+                        userId: currenUserId,
                         postId: Number(postId)
                     }
                 }
@@ -43,7 +47,7 @@ export const BookmarkFeed = async (req: Request, res: Response) => {
         //buat bookmark
         const Bookmark = await prisma.bookmark.create({
             data: {
-                userId: req.data.id,
+                userId: currenUserId,
                 postId: Number(postId)
             }
         });
@@ -59,7 +63,11 @@ export const BookmarkFeed = async (req: Request, res: Response) => {
 export const UserCheckFeed = async (req: Request, res: Response) => {
     try {
         const {postId} = req.params
-        const currenUserId = req.data.id
+        const currenUserId = req.data?.id
+
+        if (!currenUserId) {
+            return res.status(401).json({message: "Unauthorized"});
+        }
 
         const Ceksaved = await prisma.bookmark.findUnique({
             where:{
