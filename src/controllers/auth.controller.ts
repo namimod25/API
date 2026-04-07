@@ -98,7 +98,7 @@ export const LoginUser = async (req: Request, res: Response) => {
         if (!exitingEmail) {
             return res.status(400).json({ message: "Email belum Terdaftar" });
         }
-        const ComparePassword = bcrypt.compareSync(password, exitingEmail.password)
+        const ComparePassword = await bcrypt.compare(password, exitingEmail.password)
 
         if (!ComparePassword) {
             return res.status(400).json({ message: "invalid user" });
@@ -121,6 +121,7 @@ export const LoginUser = async (req: Request, res: Response) => {
             }
         });
     } catch (error) {
+        console.error("[LoginUser Error]", error);
         res.status(500).json({ message: "internal server" });
     }
 }

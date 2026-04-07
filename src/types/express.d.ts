@@ -1,9 +1,18 @@
-import type { User } from "../generated/client.ts";
+interface UserData {
+    id: number;
+    fullname: string;
+    username: string;
+    email: string;
+    Image: string | null;
+    bio: string;
+}
 
 declare global {
     namespace Express {
-         interface Request {
+        interface Request {
             data?: UserData;
         }
     }
 }
+
+export {};
