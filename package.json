@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "postinstall": "prisma generate",
     "start": "node --loader ts-node/esm src/index.ts"
   },
   "keywords": [],
