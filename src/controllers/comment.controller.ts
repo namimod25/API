@@ -5,9 +5,9 @@ import { prisma } from '../db/config.js';
 export const createComment = async (req: Request, res: Response) => {
     try {
         const currentUser = req.data?.id
-        const { post, content}  = req.body
+        const { postId, content}  = req.body
 
-        if(!post || !content){
+        if(!postId || !content){
             res.status(400).json({
                 message: "Input Post dan content wajib di isi"
             });
@@ -15,7 +15,7 @@ export const createComment = async (req: Request, res: Response) => {
 
         const postData = await prisma.post.findUnique({
             where: {
-                id: Number(post)
+                id: Number(postId)
             }
         })
         if(!postData){
@@ -25,14 +25,14 @@ export const createComment = async (req: Request, res: Response) => {
        const  newContent =  await prisma.comment.create({
             data:{
                 userId: Number(currentUser),
-                postId: Number(post),
+                postId: Number(postId),
                 content
             }
         });
         //update post count
         await prisma.post.update({
             where:{
-                id: Number(post)
+                id: Number(postId)
             },
             data: {
                 commentCount: {increment: 1}
