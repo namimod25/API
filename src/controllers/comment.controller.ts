@@ -4,11 +4,15 @@ import { prisma } from '../db/config.js';
 
 export const createComment = async (req: Request, res: Response) => {
     try {
-        const currentUser = req.body.userId
+        const currentUserId = req.data?.id
         const { postId, content}  = req.body
 
+        if (currentUserId === undefined) {
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+
         if(!postId || !content){
-            res.status(400).json({
+            return res.status(400).json({
                 message: "Input Post dan content wajib di isi"
             });
         }
@@ -19,12 +23,12 @@ export const createComment = async (req: Request, res: Response) => {
             }
         })
         if(!postData){
-            return res.status(400).json({message: "post/feed tidak di temukan"})
+            return res.status(404).json({message: "post/feed tidak di temukan"})
         }
         //masukan data
        const  newContent =  await prisma.comment.create({
             data:{
-                userId: Number(currentUser),
+                userId: currentUserId,
                 postId: Number(postId),
                 content
             }
@@ -50,7 +54,11 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const commentDeleteId = async (req: Request, res: Response) => {
     const {id} = req.params
-    const currentUser = req.body.id
+    const currentUserId = req.data?.id
+
+    if (currentUserId === undefined) {
+        return res.status(401).json({ message: "Unauthorized" })
+    }
 
     const comment = await prisma.comment.findUnique({
         where:{
@@ -62,7 +70,7 @@ export const commentDeleteId = async (req: Request, res: Response) => {
         return res.status(404).json({message: "Comment not found"});
     }
 
-    if(comment.userId != currentUser){
+    if(comment.userId !== currentUserId){
         return res.status(400).json({message: "Anda tidak bisa menghapus komentar user lain"});
     }
 
