@@ -4,7 +4,7 @@ import { prisma } from '../db/config.js';
 
 export const createComment = async (req: Request, res: Response) => {
     try {
-        const currentUser = req.data?.id
+        const currentUser = req.body.userId
         const { postId, content}  = req.body
 
         if(!postId || !content){
