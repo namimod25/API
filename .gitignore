@@ -10,3 +10,4 @@ package-lock.json
 Mobile
 
 migrations
+verify_fix.ts
