@@ -30,11 +30,6 @@ async function bootstrap() {
   app.use('/api/comment', routeComment);
   app.use('/api/like', LikeRouter);
   app.use('/api/bookmark', BookmarkRouter);
-
-  
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`API running at http://0.0.0.0/${port}`);
-  });
 }
 
 bootstrap().catch((err) => {
