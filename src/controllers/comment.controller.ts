@@ -5,7 +5,7 @@ import { prisma } from '../db/config.js';
 export const createComment = async (req: Request, res: Response) => {
     try {
         const currentUserId = req.data?.id
-        const { post, content}  = req.body
+        const { post, content}  = req.body.id
 
         if (currentUserId === undefined) {
             return res.status(401).json({ message: "Unauthorized" })
@@ -53,41 +53,44 @@ export const createComment = async (req: Request, res: Response) => {
 }
 
 export const commentDeleteId = async (req: Request, res: Response) => {
-    const {id} = req.params
-    const currentUserId = req.data?.id
+    try {
+        const {id} = req.params;
+        const currentUserId = req.data?.id;
 
-    if (currentUserId === undefined) {
-        return res.status(401).json({ message: "Unauthorized" })
-    }
-
-    const comment = await prisma.comment.findUnique({
-        where:{
-            id: Number(id)
+        if (!currentUserId) {
+            return res.status(401).json({ message: "Unauthorized: Data user tidak ditemukan" })
         }
-    })
 
-    if(!comment){
-        return res.status(404).json({message: "Comment not found"});
-    }
+        const comment = await prisma.comment.findUnique({
+            where:{
+                id: Number(id)
+            }
+        });
 
-    if(comment.userId !== currentUserId){
-        return res.status(400).json({message: "Anda tidak bisa menghapus komentar user lain"});
-    }
-
-    await prisma.comment.delete({
-        where: {
-            id: Number(id)
+        if(!comment){
+            return res.status(404).json({message: "Comment not found"});
         }
-    });
 
-    await prisma.post.update({
-        where: {
-            id: Number(comment.postId)
-        },
-        data: {
-            commentCount: {decrement: 1}
+        if(comment.userId !== currentUserId){
+            return res.status(400).json({message: "Anda tidak bisa menghapus komentar user lain"});
         }
-    })
 
-    res.status(200).json({message: "commen telah terhapus"});
+        await prisma.comment.delete({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        await prisma.post.update({
+            where: {
+                id: Number(comment.postId)
+            },
+            data: {
+                commentCount: {decrement: 1}
+            }
+        });
+        res.status(200).json({message: "commen telah terhapus"});
+    } catch (error) {
+        res.status(500).json({message: 'internal server', error})
+    }
 }
