@@ -140,6 +140,7 @@ export const detailFeed = async (req: Request, res: Response) => {
             },
             comments: {
                 select: {
+                    id: true,
                     content: true,
                     createdAt: true,
                     user: {
