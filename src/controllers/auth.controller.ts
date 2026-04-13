@@ -129,7 +129,7 @@ export const LoginUser = async (req: Request, res: Response) => {
 export const GetUser = async (req: Request, res: Response) => {
     res.status(200).json({
         message: "Berhasil mendapatkan data",
-        data: (req as any).data.id
+        data: req.data?.id
     })
 }
 
