@@ -50,6 +50,8 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
         next();
 
     } catch (error) {
-        return res.status(401).json({ message: "token tidak benar" })
+        if(!req.data){
+        return res.status(401).json({message: "Anauthoriaze"});
+        }
     }
 }
