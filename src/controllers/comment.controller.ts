@@ -5,13 +5,13 @@ import { prisma } from '../db/config.js';
 export const createComment = async (req: Request, res: Response) => {
     try {
         const currentUserId = req.data?.id
-        const { postId, content}  = req.body
+        const { post, content}  = req.body
 
         if (currentUserId === undefined) {
             return res.status(401).json({ message: "Unauthorized" })
         }
 
-        if(!postId || !content){
+        if(!post || !content){
             return res.status(400).json({
                 message: "Input Post dan content wajib di isi"
             });
@@ -19,7 +19,7 @@ export const createComment = async (req: Request, res: Response) => {
 
         const postData = await prisma.post.findUnique({
             where: {
-                id: Number(postId)
+                id: Number(post)
             }
         })
         if(!postData){
@@ -29,14 +29,14 @@ export const createComment = async (req: Request, res: Response) => {
        const  newContent =  await prisma.comment.create({
             data:{
                 userId: currentUserId,
-                postId: Number(postId),
+                postId: Number(post),
                 content
             }
         });
         //update post count
         await prisma.post.update({
             where:{
-                id: Number(postId)
+                id: Number(post)
             },
             data: {
                 commentCount: {increment: 1}
