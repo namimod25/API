@@ -182,14 +182,31 @@ export const deleteFeed = async (req: Request, res: Response) => {
         if (postData.imageId) {
             await cloudinary.uploader.destroy(postData.imageId)
         }
-        await prisma.post.delete({
-            where: {
-                id: Number(id)
-            }
+
+        await prisma.$transaction(async (tx) => {
+            console.log(`[deleteFeed] Manual cleanup for post ${id}...`);
+            // Manually delete related records to avoid foreign key constraint errors
+            const dLikes = await tx.likes.deleteMany({ where: { postId: Number(id) } });
+            const dComments = await tx.comment.deleteMany({ where: { postId: Number(id) } });
+            const dBookmarks = await tx.bookmark.deleteMany({ where: { postId: Number(id) } });
+            
+            console.log(`[deleteFeed] Cleanup stats for post ${id}: Likes=${dLikes.count}, Comments=${dComments.count}, Bookmarks=${dBookmarks.count}`);
+
+            console.log(`[deleteFeed] Deleting post ${id}...`);
+            await tx.post.delete({
+                where: {
+                    id: Number(id)
+                }
+            });
         });
+
+        console.log(`[deleteFeed] Successfully deleted feed ${id}`);
         return res.status(200).json({ message: "data feed berhasil di hapus" });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error", error });
+    } catch (error: any) {
+        console.error("[deleteFeed] ERROR:", error);
+        return res.status(500).json({ 
+            message: "Internal server error", 
+            error: error.message || "Unknown error" 
+        });
     }
 }
