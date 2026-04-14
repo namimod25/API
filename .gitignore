@@ -10,5 +10,9 @@ package-lock.json
 Mobile
 
 migrations
+
 verify_fix.ts
 verify_comment_delete.ts
+verify_post_delete.ts
+k.toLowerCase().includes('like')
+prisma_diagnose.ts
