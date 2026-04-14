@@ -45,26 +45,29 @@ export const createComment = async (req: Request, res: Response) => {
         res.status(201).json({message: "comment berhasil",
             data: newContent
         })
-    } catch (error) {
-        res.status(500).json({message: 'internal server',
-            error
+    } catch (error: any) {
+        console.error("[createComment] ERROR:", error);
+        res.status(500).json({ 
+            message: 'Internal server error', 
+            error: error.message || 'Unknown error'
         })
     }
 }
 
 export const commentDeleteId = async (req: Request, res: Response) => {
     try {
-        console.log(`[commentDeleteId] id: ${req.params?.id}, req.data: ${JSON.stringify(req.data)}`);
+        console.log(`[commentDeleteId] Attempting to delete comment. id: ${req.params?.id}, userId: ${req.data?.id}`);
         const { id } = req.params;
         const currentUserId = req.data?.id;
 
         if (!currentUserId) {
-            console.log("[commentDeleteId] currentUserId is missing");
+            console.warn("[commentDeleteId] Unauthorized: currentUserId is missing");
             return res.status(401).json({ message: "Unauthorized: Data user tidak ditemukan" })
         }
 
         const commentId = Number(id);
         if (isNaN(commentId)) {
+            console.warn(`[commentDeleteId] Invalid ID format: ${id}`);
             return res.status(400).json({ message: "ID komentar tidak valid" });
         }
 
@@ -75,30 +78,41 @@ export const commentDeleteId = async (req: Request, res: Response) => {
         });
 
         if (!comment) {
+            console.warn(`[commentDeleteId] Comment not found: ${commentId}`);
             return res.status(404).json({ message: "Comment not found" });
         }
 
         if (comment.userId !== currentUserId) {
-            return res.status(400).json({ message: "Anda tidak bisa menghapus komentar user lain" });
+            console.warn(`[commentDeleteId] Forbidden: User ${currentUserId} tried to delete comment ${commentId} owned by ${comment.userId}`);
+            return res.status(403).json({ message: "Anda tidak bisa menghapus komentar user lain" });
         }
 
-        await prisma.comment.delete({
-            where: {
-                id: commentId
-            }
+        await prisma.$transaction(async (tx) => {
+            console.log(`[commentDeleteId] Deleting comment ${commentId}...`);
+            await tx.comment.delete({
+                where: {
+                    id: commentId
+                }
+            });
+
+            console.log(`[commentDeleteId] Decrementing comment count for post ${comment.postId}...`);
+            await tx.post.update({
+                where: {
+                    id: Number(comment.postId)
+                },
+                data: {
+                    commentCount: { decrement: 1 }
+                }
+            });
         });
 
-        await prisma.post.update({
-            where: {
-                id: Number(comment.postId)
-            },
-            data: {
-                commentCount: { decrement: 1 }
-            }
-        });
-        res.status(200).json({ message: "commen telah terhapus" });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'internal server', error })
+        console.log(`[commentDeleteId] Successfully deleted comment ${commentId}`);
+        res.status(200).json({ message: "komentar telah terhapus" });
+    } catch (error: any) {
+        console.error("[commentDeleteId] ERROR:", error);
+        res.status(500).json({ 
+            message: 'Internal server error', 
+            error: error.message || 'Unknown error'
+        })
     }
 }
