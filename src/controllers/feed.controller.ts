@@ -165,27 +165,31 @@ export const detailFeed = async (req: Request, res: Response) => {
 }
 
 export const deleteFeed = async (req: Request, res: Response) => {
-
-    const {id} = req.params
-    const postData = await prisma.post.findUnique({
-        where: {
-            id: Number(id)
+    try {
+        const { id } = req.params
+        const postData = await prisma.post.findUnique({
+            where: {
+                id: Number(id)
+            }
+        })
+        if (!postData) {
+            return res.status(404).json({ message: "Feed tidak di temukan" });
         }
-    })
-    if(!postData){
-        return res.status(404).json({message: "Feed tidak di temukan"});
-    }
-    if (postData.userId != (req.data?.id)) {
-        res.status(400).json({message: "anda tidak bisa menghapus feed user lain"});
-    }
-
-    if(postData.imageId){
-        await cloudinary.uploader.destroy(postData.imageId)
-    }
-    await prisma.post.delete({
-        where: {
-            id: Number(id)
+        if (postData.userId !== Number(req.data?.id)) {
+            return res.status(400).json({ message: "anda tidak bisa menghapus feed user lain" });
         }
-    });
-    return res.status(200).json({message: "data feed berhasil di hapus"});
+
+        if (postData.imageId) {
+            await cloudinary.uploader.destroy(postData.imageId)
+        }
+        await prisma.post.delete({
+            where: {
+                id: Number(id)
+            }
+        });
+        return res.status(200).json({ message: "data feed berhasil di hapus" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", error });
+    }
 }
