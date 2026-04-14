@@ -11,3 +11,4 @@ Mobile
 
 migrations
 verify_fix.ts
+verify_comment_delete.ts
