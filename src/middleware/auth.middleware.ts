@@ -38,20 +38,23 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
             return res.status(401).json({ message: "User tidak ditemukan" });
         }
 
-       req.data = {
-        id: currentUser.id,
-        fullname: currentUser.fullname,
-        username: currentUser.username,
-        email: currentUser.email,
-        Image: currentUser.image,
-        bio: currentUser.bio
-       };
+        req.data = {
+            id: currentUser.id,
+            fullname: currentUser.fullname,
+            username: currentUser.username,
+            email: currentUser.email,
+            Image: currentUser.image,
+            bio: currentUser.bio
+        };
 
+        console.log(`[AuthMiddleware] User authenticated: ${currentUser.id}`);
         next();
 
     } catch (error) {
-        if(!req.data){
-        return res.status(401).json({message: "Anauthoriaze"});
+        console.error("[AuthMiddleware] Error:", error);
+        if (!req.data) {
+            return res.status(401).json({ message: "Anauthoriaze" });
         }
+        next(error);
     }
 }
