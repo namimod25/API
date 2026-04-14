@@ -64,12 +64,12 @@ export const ReadAllFeeds = async(req: Request, res: Response) => {
         }
 
         const followings = await prisma.follow.findMany({
-            where:{ followingId: currentUserId },
+            where:{ followerId: currentUserId },
             select:{
-                followerId: true
+                followingId: true
             }
         });
-         const followingIds = followings.map(f => f.followerId)
+         const followingIds = followings.map(f => f.followingId)
         
          //request query
         const page = Number(req.query.page) || 1
