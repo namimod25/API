@@ -54,30 +54,35 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const commentDeleteId = async (req: Request, res: Response) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
         const currentUserId = req.data?.id;
 
         if (!currentUserId) {
             return res.status(401).json({ message: "Unauthorized: Data user tidak ditemukan" })
         }
 
+        const commentId = Number(id);
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: "ID komentar tidak valid" });
+        }
+
         const comment = await prisma.comment.findUnique({
-            where:{
-                id: Number(id)
+            where: {
+                id: commentId
             }
         });
 
-        if(!comment){
-            return res.status(404).json({message: "Comment not found"});
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found" });
         }
 
-        if(comment.userId !== currentUserId){
-            return res.status(400).json({message: "Anda tidak bisa menghapus komentar user lain"});
+        if (comment.userId !== currentUserId) {
+            return res.status(400).json({ message: "Anda tidak bisa menghapus komentar user lain" });
         }
 
         await prisma.comment.delete({
             where: {
-                id: Number(id)
+                id: commentId
             }
         });
 
@@ -86,11 +91,12 @@ export const commentDeleteId = async (req: Request, res: Response) => {
                 id: Number(comment.postId)
             },
             data: {
-                commentCount: {decrement: 1}
+                commentCount: { decrement: 1 }
             }
         });
-        res.status(200).json({message: "commen telah terhapus"});
+        res.status(200).json({ message: "commen telah terhapus" });
     } catch (error) {
-        res.status(500).json({message: 'internal server', error})
+        console.log(error);
+        res.status(500).json({ message: 'internal server', error })
     }
 }
