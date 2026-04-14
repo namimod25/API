@@ -54,10 +54,12 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const commentDeleteId = async (req: Request, res: Response) => {
     try {
+        console.log(`[commentDeleteId] id: ${req.params?.id}, req.data: ${JSON.stringify(req.data)}`);
         const { id } = req.params;
         const currentUserId = req.data?.id;
 
         if (!currentUserId) {
+            console.log("[commentDeleteId] currentUserId is missing");
             return res.status(401).json({ message: "Unauthorized: Data user tidak ditemukan" })
         }
 
