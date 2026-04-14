@@ -63,41 +63,25 @@ export const ReadAllFeeds = async(req: Request, res: Response) => {
             return res.status(401).json({message: "User tidak terautentikasi"});
         }
 
-        const followings = await prisma.follow.findMany({
-            where:{ followerId: currentUserId },
-            select:{
-                followingId: true
-            }
-        });
-         const followingIds = followings.map(f => f.followingId)
-        
-         //request query
+        //request query
         const page = Number(req.query.page) || 1
         const limit = Number(req.query.limit) || 10
         const skip = (page - 1) * limit
 
-        const totalFeed = await prisma.post.count({
-            where:{
-                userId: {in: [...followingIds, currentUserId]}
-            }
-        })
+        const totalFeed = await prisma.post.count()
 
         const posts = await prisma.post.findMany(
             {
-                where:{
-                    userId: {in: [...followingIds, currentUserId]}
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            fullname: true,
+                            username: true,
+                            image: true,
+                        },
+                    },
                 },
-
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    fullname: true,
-                    username: true,
-                    image: true,
-                },
-            },
-        },
             orderBy: { 
                 createdAt: 'desc'
             },
