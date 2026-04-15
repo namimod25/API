@@ -23,7 +23,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "E:\\app\\API\\src\\generated\\prisma",
+      "value": "/home/budi-asmara/Documents/API/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -32,12 +32,12 @@ const config: runtime.GetPrismaClientConfig = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "E:\\app\\API\\prisma\\schema.prisma",
+    "sourceFilePath": "/home/budi-asmara/Documents/API/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
